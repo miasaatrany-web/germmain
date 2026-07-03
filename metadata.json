@@ -1,0 +1,6 @@
+{
+  "name": "Atelier Chez Germain",
+  "description": "Application professionnelle de gestion et d'exposition des réalisations pour l'Atelier Chez Germain à Mampikony.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

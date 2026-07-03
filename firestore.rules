@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if the user is authenticated.
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // Settings rules
+    match /settings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Test rules
+    match /test/{testId} {
+      allow read: if true;
+    }
+
+    // Services rules
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Categories rules
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Projects rules
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Messages rules
+    match /messages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // AI history rules
+    match /ai_history/{historyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
