@@ -2,11 +2,11 @@ import { Setting, Service, Category, Project } from "./types";
 
 export const DEFAULT_SETTINGS: Setting = {
   companyName: "ATELIER CHEZ GERMAIN",
-  logoUrl: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=200",
-  phone: "+261 34 55 678 90",
-  whatsapp: "+261345567890",
+  logoUrl: "/src/assets/images/electronic_welding_logo_1783103948022.jpg",
+  phone: "+261 34 57 652 27",
+  whatsapp: "+261345765227",
   address: "Mampikony, à côté de l'hôtel Nansica, Madagascar",
-  facebookUrl: "https://facebook.com/AtelierChezGermain",
+  facebookUrl: "https://www.facebook.com/germain.raherimanana.2025?locale=fr_FR",
   instagramUrl: "https://instagram.com/AtelierChezGermain",
   tiktokUrl: "https://tiktok.com/@AtelierChezGermain",
   youtubeUrl: "https://youtube.com/@AtelierChezGermain",

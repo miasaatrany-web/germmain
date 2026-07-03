@@ -142,6 +142,7 @@ export default function Dashboard() {
     icon: "Settings",
     imageUrl: ""
   });
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [showServiceForm, setShowServiceForm] = useState(false);
 
   // AI Generation State
@@ -337,12 +338,47 @@ export default function Dashboard() {
   };
 
   // Services Actions
-  const handleAddService = async (e: React.FormEvent) => {
+  const handleOpenAddService = () => {
+    setEditingService(null);
+    setServiceForm({ title: "", description: "", icon: "Settings", imageUrl: "" });
+    setShowServiceForm(true);
+  };
+
+  const handleOpenEditService = (service: Service) => {
+    setEditingService(service);
+    setServiceForm({
+      title: service.title,
+      description: service.description,
+      icon: service.icon,
+      imageUrl: service.imageUrl || ""
+    });
+    setShowServiceForm(true);
+  };
+
+  const handleServicePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCompressing(true);
+    try {
+      const compressedBase64 = await compressImage(file);
+      setServiceForm({ ...serviceForm, imageUrl: compressedBase64 });
+    } catch (err) {
+      console.error("Compression error:", err);
+    }
+    setCompressing(false);
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!serviceForm.title || !serviceForm.description) return;
     try {
-      await addService(serviceForm);
+      if (editingService) {
+        await updateService(editingService.id, serviceForm);
+      } else {
+        await addService(serviceForm);
+      }
       setServiceForm({ title: "", description: "", icon: "Settings", imageUrl: "" });
+      setEditingService(null);
       setShowServiceForm(false);
       refreshServices();
     } catch (err) {
@@ -472,13 +508,23 @@ export default function Dashboard() {
       <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 shrink-0 border-r border-slate-800 relative z-10">
         <div className="space-y-8">
           {/* Logo / Company name */}
-          <div>
-            <span className="font-extrabold text-white text-lg tracking-wider block">
-              {settings?.companyName || "GERMAIN ADMIN"}
-            </span>
-            <span className="text-[10px] text-blue-400 font-mono tracking-widest uppercase block mt-1">
-              Tableau de Bord
-            </span>
+          <div className="flex items-center gap-3">
+            {settings?.logoUrl && (
+              <img 
+                src={settings.logoUrl} 
+                alt="Logo Admin" 
+                className="h-10 w-10 rounded-full object-contain bg-white p-1" 
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <div>
+              <span className="font-extrabold text-white text-lg tracking-wider block">
+                {settings?.companyName || "GERMAIN ADMIN"}
+              </span>
+              <span className="text-[10px] text-blue-400 font-mono tracking-widest uppercase block mt-1">
+                Tableau de Bord
+              </span>
+            </div>
           </div>
 
           {/* Nav Items */}
@@ -853,7 +899,7 @@ export default function Dashboard() {
                       <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center space-y-4 relative">
                         <Upload className="w-8 h-8 text-slate-400 mx-auto" />
                         <div>
-                          <p className="font-bold text-slate-800 text-sm">Téléverser des photos</p>
+                          <p className="font-bold text-slate-800 text-sm">Ajouter des photos</p>
                           <p className="text-slate-500 text-xs mt-1">
                             Glissez-déposez ou sélectionnez plusieurs photos. Compression automatique intégrée.
                           </p>
@@ -875,16 +921,38 @@ export default function Dashboard() {
                             {projectForm.photos.map((photo, pIdx) => (
                               <div key={pIdx} className="relative group/thumb h-16 w-16 rounded-lg overflow-hidden border border-slate-200">
                                 <img src={photo} className="h-full w-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const filtered = projectForm.photos.filter((_, i) => i !== pIdx);
-                                    setProjectForm({ ...projectForm, photos: filtered });
-                                  }}
-                                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                  <label className="bg-[#1565C0] text-white rounded-full p-1 cursor-pointer hover:bg-blue-600 transition-colors">
+                                    <Upload className="w-3 h-3" />
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      className="hidden" 
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setCompressing(true);
+                                        try {
+                                          const compressed = await compressImage(file);
+                                          const newPhotos = [...projectForm.photos];
+                                          newPhotos[pIdx] = compressed;
+                                          setProjectForm({ ...projectForm, photos: newPhotos });
+                                        } catch (err) { console.error(err); }
+                                        setCompressing(false);
+                                      }}
+                                    />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const filtered = projectForm.photos.filter((_, i) => i !== pIdx);
+                                      setProjectForm({ ...projectForm, photos: filtered });
+                                    }}
+                                    className="bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -968,7 +1036,7 @@ export default function Dashboard() {
                   Services Offerts ({services.length})
                 </h3>
                 <button
-                  onClick={() => setShowServiceForm(!showServiceForm)}
+                  onClick={handleOpenAddService}
                   className="bg-[#1565C0] hover:bg-[#1565C0]/90 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -976,39 +1044,36 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Service Addition Form */}
+              {/* Service Addition/Edit Form */}
               {showServiceForm && (
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4"
                 >
-                  <form onSubmit={handleAddService} className="space-y-4">
-                    <div>
-                      <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Titre du service *</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={serviceForm.title}
-                        onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
-                        placeholder="Ex: Escaliers hélicoïdaux"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Description *</label>
-                      <textarea 
-                        rows={3}
-                        required
-                        value={serviceForm.description}
-                        onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                        placeholder="Décrivez en détail la fabrication du service..."
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 resize-none"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-bold text-slate-800 text-sm uppercase">
+                      {editingService ? "Modifier le Service" : "Ajouter un Service"}
+                    </h4>
+                    <button onClick={() => setShowServiceForm(false)} className="text-slate-400 hover:text-slate-600">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSaveService} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Icône (Lucide-React name)</label>
+                        <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Titre du service *</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={serviceForm.title}
+                          onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
+                          placeholder="Ex: Escaliers hélicoïdaux"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Icône</label>
                         <select
                           value={serviceForm.icon}
                           onChange={(e) => setServiceForm({ ...serviceForm, icon: e.target.value })}
@@ -1025,25 +1090,57 @@ export default function Dashboard() {
                           <option value="Settings">Settings (Sur Mesure)</option>
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Image URL (Optionnel)</label>
-                        <input 
-                          type="text" 
-                          value={serviceForm.imageUrl}
-                          onChange={(e) => setServiceForm({ ...serviceForm, imageUrl: e.target.value })}
-                          placeholder="https://images.unsplash.com/..."
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800"
-                        />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-2">Description *</label>
+                      <textarea 
+                        rows={3}
+                        required
+                        value={serviceForm.description}
+                        onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                        placeholder="Décrivez en détail la fabrication du service..."
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-800 resize-none"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-slate-700 font-semibold text-xs uppercase tracking-wider mb-1">Image du Service</label>
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
+                            {serviceForm.imageUrl ? (
+                              <img src={serviceForm.imageUrl} className="w-full h-full object-cover" />
+                            ) : (
+                              <Upload className="w-6 h-6 text-slate-300" />
+                            )}
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleServicePhotoUpload}
+                              className="absolute inset-0 opacity-0 cursor-pointer"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <input 
+                              type="text" 
+                              value={serviceForm.imageUrl}
+                              onChange={(e) => setServiceForm({ ...serviceForm, imageUrl: e.target.value })}
+                              placeholder="Ou collez une URL d'image..."
+                              className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] text-slate-800"
+                            />
+                            <p className="text-[9px] text-slate-400 italic">Cliquez sur le carré pour téléverser.</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          type="submit"
+                          className="w-full bg-[#1565C0] hover:bg-[#1565C0]/90 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-md"
+                          id="save-service-btn"
+                        >
+                          {editingService ? "Mettre à jour le Service" : "Enregistrer le Service"}
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      type="submit"
-                      className="bg-[#1565C0] hover:bg-[#1565C0]/90 text-white font-bold px-4 py-2 rounded-xl text-xs"
-                      id="save-service-btn"
-                    >
-                      Enregistrer le Service
-                    </button>
                   </form>
                 </motion.div>
               )}
@@ -1062,14 +1159,24 @@ export default function Dashboard() {
                           <p className="text-xs text-slate-400 line-clamp-1">{srv.description}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteService(srv.id)}
-                        className="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-all"
-                        title="Supprimer"
-                        id={`delete-service-${srv.id}`}
-                      >
-                        <Trash className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleOpenEditService(srv)}
+                          className="text-[#1565C0] hover:bg-blue-50 p-2 rounded-lg transition-all"
+                          title="Modifier"
+                          id={`edit-service-${srv.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteService(srv.id)}
+                          className="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-all"
+                          title="Supprimer"
+                          id={`delete-service-${srv.id}`}
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

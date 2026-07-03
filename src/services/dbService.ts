@@ -72,20 +72,33 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  
+  const isMutation = [
+    OperationType.CREATE, 
+    OperationType.UPDATE, 
+    OperationType.DELETE, 
+    OperationType.WRITE
+  ].includes(operationType);
+
+  if (isMutation) {
+    console.error('Firestore Write Error: ', JSON.stringify(errInfo));
+    throw new Error(JSON.stringify(errInfo));
+  } else {
+    console.warn('Firestore Read Warning: ', JSON.stringify(errInfo));
+    // Do not throw for GET/LIST to allow fallbacks
+  }
 }
 
 // Test connection on startup as mandated by guidelines
 export async function testFirebaseConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    await getDoc(doc(db, 'test', 'connection'));
     console.log("Firebase connection verified.");
   } catch (error) {
     if (isPermissionError(error)) {
-      handleFirestoreError(error, OperationType.GET, 'test/connection');
-    }
-    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn("Firebase permission warning on test document:", error);
+      // We don't throw here to allow the app to try loading real data
+    } else if (error instanceof Error && error.message.includes('the client is offline')) {
       console.error("Please check your Firebase configuration. Client is offline.");
     } else {
       console.log("Firebase initialized (test query complete).");
@@ -361,6 +374,12 @@ export async function saveAiHistory(history: Omit<AiHistory, "id">): Promise<str
 
 // 7. Seed Database (Initialize DB on first admin login/load if empty)
 export async function initializeDatabaseIfEmpty(): Promise<void> {
+  // Only attempt seeding if we are authenticated, otherwise we don't have write permissions anyway
+  if (!auth.currentUser) {
+    console.log("Skipping database initialization (not authenticated).");
+    return;
+  }
+
   try {
     // 1. Settings
     const settingsRef = doc(db, "settings", "global");

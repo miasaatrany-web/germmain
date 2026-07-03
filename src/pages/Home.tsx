@@ -204,22 +204,23 @@ export default function Home() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {currentSettings.logoUrl ? (
               <img 
                 src={currentSettings.logoUrl} 
                 alt="Logo" 
-                className="h-10 w-10 rounded-full object-cover border border-white/20" 
+                className="h-14 w-14 rounded-full object-contain bg-white p-1 border border-white/20" 
+                referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-10 h-10 blue-gradient rounded-lg flex items-center justify-center shadow-lg shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 blue-gradient rounded-lg flex items-center justify-center shadow-lg shrink-0">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
               </div>
             )}
             <div>
-              <span className={`font-extrabold text-lg sm:text-xl tracking-tight block ${isScrolled ? "text-slate-800" : "text-white"}`}>
+              <span className={`font-extrabold text-lg sm:text-2xl tracking-tight block ${isScrolled ? "text-slate-800" : "text-white"}`}>
                 {currentSettings.companyName === "ATELIER CHEZ GERMAIN" || currentSettings.companyName.includes("CHEZ GERMAIN") ? (
                   <>
                     ATELIER CHEZ <span className="text-[#1565C0]">GERMAIN</span>
@@ -945,10 +946,20 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           
           {/* Column 1: Info / Logo */}
-          <div className="space-y-4">
-            <span className="font-extrabold text-xl tracking-wider block">
-              {currentSettings.companyName}
-            </span>
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              {currentSettings.logoUrl && (
+                <img 
+                  src={currentSettings.logoUrl} 
+                  alt="Logo Footer" 
+                  className="h-12 w-12 rounded-full object-contain bg-white p-1 border border-white/10" 
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              <span className="font-extrabold text-xl tracking-wider block">
+                {currentSettings.companyName}
+              </span>
+            </div>
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
               Votre partenaire de confiance pour tous vos travaux et ouvrages métalliques à Mampikony. Excellence, durabilité et rigueur.
             </p>
