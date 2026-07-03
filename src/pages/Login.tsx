@@ -59,7 +59,7 @@ export default function Login() {
       } catch (err: any) {
         console.warn("Firebase Auth fallback to local session:", err);
         localStorage.setItem("germain_admin_session", "true");
-        window.location.href = "/admin/dashboard";
+        navigate("/admin/dashboard");
       } finally {
         setLoading(false);
       }

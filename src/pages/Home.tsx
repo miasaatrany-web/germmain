@@ -1188,6 +1188,33 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Floating green WhatsApp button */}
+      <a
+        href={`https://wa.me/${currentSettings.whatsapp}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:bg-[#128C7E] transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        title="Discuter sur WhatsApp"
+        id="whatsapp-floating-btn"
+      >
+        {/* Pulsing ring effect */}
+        <span className="absolute -inset-1 bg-[#25D366] rounded-full opacity-35 animate-ping group-hover:opacity-0 transition-opacity" />
+        
+        {/* SVG WhatsApp logo */}
+        <svg
+          className="w-7 h-7 relative z-10 fill-current"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12.031 2c-5.516 0-10 4.484-10 10 0 1.766.453 3.422 1.25 4.891L2 22l5.313-1.391c1.438.781 3.078 1.219 4.719 1.219 5.516 0 10-4.484 10-10s-4.484-10-10-10zm0 1.656c4.609 0 8.344 3.734 8.344 8.344s-3.734 8.344-8.344 8.344c-1.5 0-2.922-.406-4.156-1.125l-.297-.172-3.109.813.828-2.984-.188-.313c-.766-1.219-1.172-2.656-1.172-4.125C4.281 7.391 8.016 3.656 12.031 3.656zm-3.172 3.125c-.188 0-.391.047-.547.156-.375.25-.875.875-.875 1.719s.609 1.656.688 1.766c.078.109 1.188 1.828 2.891 2.563.406.172.719.281.969.359.406.125.781.109 1.078.063.328-.047 1.016-.422 1.156-.813.141-.391.141-.734.094-.813-.047-.078-.188-.125-.391-.219-.203-.094-1.156-.578-1.344-.641-.188-.063-.328-.094-.469.109-.141.203-.547.688-.672.828-.125.141-.25.156-.453.063-.203-.094-.859-.313-1.641-1.016-.609-.547-1.016-1.219-1.141-1.422-.125-.203-.016-.313.078-.406.094-.094.203-.25.313-.375.094-.125.125-.219.188-.359.063-.141.031-.266-.016-.359-.047-.094-.469-1.125-.641-1.531-.172-.406-.344-.344-.469-.344z" />
+        </svg>
+
+        {/* Text Tooltip */}
+        <span className="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-md border border-slate-800">
+          Discuter sur WhatsApp
+        </span>
+      </a>
+
     </div>
   );
 }
